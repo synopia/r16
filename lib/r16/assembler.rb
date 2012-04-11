@@ -39,6 +39,11 @@ module R16
       asm.close_scope
     end
 
+    def wait n
+      while_do proc{ife n, 0} do
+        sub n, 1
+      end
+    end
 
     def dat *args
       s = []

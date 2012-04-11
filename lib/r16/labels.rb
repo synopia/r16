@@ -22,7 +22,11 @@ module R16
         @locals[label] = label
       end
 
-      def get_local label
+      def get_local label, create=false
+        @locals[label] if @locals.has_key? label
+        if create
+          @locals[label] = label
+        end
         @locals[label]
       end
 
@@ -40,12 +44,16 @@ module R16
         nil
       end
 
-      def get_global label
+      def get_global_name label
         res = get_local(label)
         return local_to_global res unless res.nil?
         scope = get_recursive label
         return scope.local_to_global label unless scope.nil?
         local_to_global def_local label
+      end
+
+      def get_local_name label
+        local_to_global get_local(label, true)
       end
 
       def local_to_global name
@@ -73,11 +81,14 @@ module R16
     end
 
     def set_label name
-      puts ":#{@top_scope.get_global name}"
+      puts ":#{@top_scope.get_global_name name}"
+    end
+    def set_local_label name
+      puts ":#{@top_scope.get_local_name name}"
     end
 
     def label name
-      @top_scope.get_global name
+      @top_scope.get_global_name name
     end
 
     private

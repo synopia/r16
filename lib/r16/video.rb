@@ -16,5 +16,9 @@ module R16
       puts "; dat #{args.join(", ")}"
       dat *numbers
     end
+
+    def fill word, number
+      dat number.times.to_a.collect{|i|word}
+    end
   end
 end

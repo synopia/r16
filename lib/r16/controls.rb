@@ -3,7 +3,7 @@ module R16
 
     def while_do expr, &block
       open_scope :while_do
-      set_label :loop
+      set_local_label :loop
 
       instance_eval &expr
       set R[:PC], :exit
@@ -17,7 +17,7 @@ module R16
 
     def do_while expr, &block
       open_scope :do_while
-      set_label :loop
+      set_local_label :loop
 
       instance_eval &block
       instance_eval &expr

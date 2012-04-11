@@ -30,7 +30,6 @@ module R16
       end
       jsr name
       add :sp, args.size-3, "Remove parameters" if args.size>3
-      set :j, :a, "Save return value"
       args.size.times.to_a.reverse.each do |i|
         if i<3
           set R[REGISTERS[i]], pop, "Restore register"
