@@ -36,4 +36,6 @@ Here is the notch example (http://0x10c.com/doc/dcpu-16.txt):
 Of course you can use full power of ruby. Currently there are basic functions calls (see ABI [1]), scoped labels and some
 basic control structure elements (while, do-while, if, ...).
 
+A more sophisticated example: http://www.dcpubin.com/su009GD_2
+
 [1] https://github.com/0x10cStandardsCommittee/0x10c-Standards/blob/master/ABI/Draft_ABI_1.txt
