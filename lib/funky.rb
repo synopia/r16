@@ -59,8 +59,8 @@ R16::Assembler.code do
 
   set_label :loop
   coord_to_addr :z, :x, :y
-
-  call :memcpy, :z, :remove, 5
+  add :z, 1
+  call :memcpy, :z, :remove, 4
 
   add :x, 1
   mod :x, 32
@@ -74,7 +74,6 @@ R16::Assembler.code do
   wait :a
 
   set :pc, :loop
-
 
   set_label :end
   set :pc, :main
@@ -93,7 +92,7 @@ R16::Assembler.code do
   dat *data
 
   set_label :copyright
-  colored_text 0x0000, "(c)funky-clan"
+  colored_text 0x0000, "powered by r16"
 
 end
 
