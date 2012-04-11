@@ -3,6 +3,8 @@ require 'r16/labels.rb'
 require 'r16/asm_output.rb'
 require 'r16/function_calls.rb'
 require 'r16/controls.rb'
+require 'r16/memory.rb'
+require 'r16/std_string.rb'
 require 'r16/video.rb'
 
 
@@ -17,6 +19,8 @@ module R16
     include R16::Operands
     include R16::FunctionCalls
     include R16::ControlStructures
+    include R16::Memory
+    include R16::StdString
 
     include R16::Video
 
