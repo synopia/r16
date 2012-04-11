@@ -3,7 +3,7 @@ require 'r16/assembler'
 include R16
 include R16::Operands
 
-lR16::Assembler.code do
+R16::Assembler.code do
   set :pc, :main
 
   def memcpy target, source, n
@@ -64,10 +64,10 @@ lR16::Assembler.code do
   set :pc, :main
 
   set_label :funky
-  colored_text 0xf000, "FUNKY"
+  colored_text 0x0000, "FUNKY"
 
   set_label :remove
-  colored_text 0xf200, "     "
+  colored_text 0x0000, "     "
 
 end
 
