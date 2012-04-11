@@ -37,7 +37,6 @@ Of course you can use full power of ruby. Currently there are basic functions ca
 basic control structure elements (while, do-while, if, ...).
 
 A more sophisticated example:
- *  http://0x10co.de/4s9xo
- *  http://www.dcpubin.com/su009GD_2
+ *  http://0x10co.de/kme0z
 
 [1] https://github.com/0x10cStandardsCommittee/0x10c-Standards/blob/master/ABI/Draft_ABI_1.txt
