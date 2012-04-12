@@ -11,7 +11,7 @@ Assembler.new.code do
   dat :ball_x,       15<<8
   dat :ball_y,        7<<8
   dat :ball_dir_x,    1<<8
-  dat :ball_dir_y,    1<<8+1
+  dat :ball_dir_y,    (1<<8)+(1<<5)
   dat :left_paddle,   0
   dat :right_paddle,  0
 
@@ -62,8 +62,8 @@ Assembler.new.code do
   end
 
   declare_function :memcpy,  :mapping=>3
-  declare_function :strncpy, :mapping=>3
-  declare_function :println,   :inline=>true
+  declare_function :strncpy,  :inline=>true
+  declare_function :println,   :mapping=>3
 
   declare_function :draw_paddle, :mapping=>3
   declare_function :move_ball,   :inline=>true
@@ -103,8 +103,8 @@ Assembler.new.code do
 =end
 
 
-  set :a, 1000
-  #wait :a
+  set :a, 0x600
+  wait :a
 
   add :b, 1
   mod :b, 64

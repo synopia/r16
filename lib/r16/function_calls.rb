@@ -127,7 +127,7 @@ module R16
           jsr @name
           add :sp, stack_params.size if stack_params.size>0
           args.each_with_index do |arg, i|
-            map = @mapping[i]
+            map = @mapping[args.size-1-i]
             map.after_call arg
           end
         end
