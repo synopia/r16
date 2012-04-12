@@ -3,7 +3,7 @@ module R16
   module AsmOutput
     [:set, :add, :sub, :mul, :div, :mod, :shl, :shr, :and, :bor, :xor, :ife, :ifn, :ifg, :ifb].each do |opcode|
       define_method( opcode ) do |a, b, c=nil|
-        puts "#{opcode.to_s.upcase} #{op(a).to_s}, #{op(b).to_s} #{";"+c unless c.nil?}"
+        out "#{opcode.to_s.upcase} #{op(a).to_s}, #{op(b).to_s} #{";"+c unless c.nil?}"
       end
 
       define_method( "#{opcode}2".to_sym ) do |target, a, b|
@@ -14,7 +14,7 @@ module R16
     end
     [:jsr].each do |opcode|
       define_method( opcode ) do |a|
-        puts "#{opcode.to_s.upcase} #{op(a).to_s}"
+        out "#{opcode.to_s.upcase} #{op(a).to_s}"
       end
     end
 

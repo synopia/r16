@@ -1,6 +1,10 @@
 module R16
+  ## ABI compatible function calls
+  #
+  # https://github.com/0x10cStandardsCommittee/0x10c-Standards/blob/master/ABI/Draft_ABI_1.txt
+  #
   module FunctionCalls
-
+    COMMENT = "ABI_1"
     def def_function (name, args)
       set_label name
       open_scope name
@@ -19,22 +23,21 @@ module R16
     end
 
     def call name, *args
-      puts "; ABI conform method call to #{name}"
       args.each_with_index do |arg,i|
         if i<3
-          set push, R[REGISTERS[i]], "Saving register"
-          set R[REGISTERS[i]], op(arg).to_s, "Param #{i}"
+          set push, R[REGISTERS[i]], COMMENT
+          set R[REGISTERS[i]], op(arg).to_s, COMMENT
         else
-          set push, op(arg).to_s, "Param #{i}"
+          set push, op(arg).to_s,COMMENT
         end
       end
       jsr name
-      add :sp, args.size-3, "Remove parameters" if args.size>3
+      add :sp, args.size-3, COMMENT if args.size>3
       args.size.times.to_a.reverse.each do |i|
         if i<3
-          set R[REGISTERS[i]], pop, "Restore register"
+          set R[REGISTERS[i]], pop, COMMENT
         else
-          set :x, pop, "Restore register"
+          set :x, pop, COMMENT
         end
       end
     end
@@ -42,9 +45,9 @@ module R16
     private
 
     def function_prolog(args, name)
-      set push, :j
-      set :j, :sp
-      sub :sp, args[:locals] unless args[:locals].nil?
+      set push, :j, COMMENT
+      set :j, :sp, COMMENT
+      sub :sp, args[:locals], COMMENT unless args[:locals].nil?
 
       new_args = []
       args[:params].times do |i|
@@ -58,10 +61,10 @@ module R16
     end
 
     def function_epilog ret_val=nil
-      set :a, ret_val unless ret_val.nil?
-      set :sp, :j
-      set :j, pop
-      set :pc, pop
+      set :a, ret_val,COMMENT  unless ret_val.nil?
+      set :sp, :j, COMMENT
+      set :j, pop, COMMENT
+      set :pc, pop, COMMENT
     end
   end
 end

@@ -10,7 +10,7 @@ require 'r16/video.rb'
 
 
 module R16
-  REGISTERS = [ :A, :B, :C, :X, :Y, :Z, :I, :J, :SP, :PC, :OV]
+  REGISTERS = [ :A, :B, :C, :X, :Y, :Z, :I, :J, :SP, :PC, :O]
   R         = {}
 
   class Assembler
@@ -29,7 +29,7 @@ module R16
       REGISTERS.each do |r|
         R[r.to_s.downcase.to_sym] = R[r] = Register.new r
       end
-      @call_stack = []
+      @tab        = SymbolTable.new
     end
 
     def self.data &block
@@ -49,6 +49,10 @@ module R16
       end
     end
 
+    def error msg
+      raise "COMPILE ERROR: #{msg}"
+    end
+
     def dat *args
       s = []
       args.each do |arg|
@@ -59,6 +63,10 @@ module R16
              end
       end
       puts "dat #{s.join(", ")}"
+    end
+
+    def out str, deindent=0
+      puts (" "*((@tab.level-deindent-1)*4))+str
     end
   end
 end
