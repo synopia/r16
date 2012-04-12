@@ -1,22 +1,21 @@
-require 'r16/assembler'
+require 'asm'
 
-
-
-include R16
-include R16::Operands
-include R16::Memory
-include R16::StdString
-
-R16::Assembler.code do
+Assembler.new.code do
+  class << self
+      include R16::Memory   # include modules with functions
+      include R16::StdString # include modules with functions
+  end
   set :pc, :main
 
-  def_function :memcpy, :params=>3
-  def_function :strncpy, :params=>3
-  def_function :print, :params=>3
+  declare_function :memcpy, :mapping=>3
+  declare_function :strncpy, :inline=>true
+  declare_function :println, :mapping=>3
+
+  define_functions
 
   set_label :main
 
-  call :print, 17, 15, :copyright
+  call :println, 17, 15, :copyright
 
   set :x, 0
   set :y, 15
@@ -43,7 +42,7 @@ R16::Assembler.code do
   set :pc, :main
 
   set_label :funky
-  colored_text 0x4000, "FUNKY"
+  colored_text 0x0000, "FUNKY"
 
   set_label :remove
   fill 0x0000, 5

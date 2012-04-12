@@ -1,14 +1,6 @@
-require 'r16/assembler'
+require 'asm'
 
-
-include R16
-
-R16::Assembler.data do
-
-end
-
-
-R16::Assembler.code do
+Assembler.new.code do
   set :a, 0x30
   set [0x1000], 0x20
   sub :a, [0x1000]

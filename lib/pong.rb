@@ -1,13 +1,11 @@
-require 'r16/assembler'
+require 'asm'
 
 
-
-include R16
-include R16::Operands
-include R16::Memory
-include R16::StdString
-
-R16::Assembler.code do
+Assembler.new.code do
+  class << self
+      include R16::Memory   # include modules with functions
+      include R16::StdString # include modules with functions
+  end
   set :pc, :main
 
   dat :ball_x,       15<<8
@@ -18,7 +16,7 @@ R16::Assembler.code do
   dat :right_paddle,  0
 
   colored_text :funky,     "FUNKY"
-  colored_text :copyright, "powered by r16"
+  colored_text :copyright,0xD000, "powered by r16"
 
   fill :remove, 0x0000, 5
 
@@ -28,9 +26,6 @@ R16::Assembler.code do
   end
   dat :sin_table, *data
 
-  def_function :memcpy, :params=>3
-  def_function :strncpy, :params=>3
-  def_function :print, :params=>3
 
   def draw_paddle pos, n, dx
     sub pos, dx
@@ -66,13 +61,19 @@ R16::Assembler.code do
     set [ball], :x
   end
 
-  def_function :draw_paddle, :params=>3
-  #def_function :move_ball,   :params=>2
-  def_function :draw_ball,   :params=>3
+  declare_function :memcpy,  :mapping=>3
+  declare_function :strncpy, :mapping=>3
+  declare_function :println,   :inline=>true
+
+  declare_function :draw_paddle, :mapping=>3
+  declare_function :move_ball,   :inline=>true
+  declare_function :draw_ball,   :mapping=>3
+
+  define_functions
 
   set_label :main
 
-  #call :print, 17, 15, :copyright
+  call :println, 17, 15, :copyright
 
   set :x, 1
   set :y, 1
@@ -81,9 +82,9 @@ R16::Assembler.code do
   set_label :loop
 
   call :draw_ball, :ball_x, :ball_y, 0x00
-  move_ball :ball_x, :ball_dir_x, 1<<8, 31<<8
-  move_ball :ball_y, :ball_dir_y, 1<<8, 15<<8
-  call :draw_ball, :ball_x, :ball_y, 0x30
+  call :move_ball, :ball_x, :ball_dir_x, 1<<8, 31<<8
+  call :move_ball, :ball_y, :ball_dir_y, 1<<8, 15<<8
+  call :draw_ball, :ball_x, :ball_y, 0xf030
 
 =begin
   set :y, [:sin_table, :b]
