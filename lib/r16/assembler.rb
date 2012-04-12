@@ -6,6 +6,7 @@ require 'r16/controls.rb'
 require 'r16/memory.rb'
 require 'r16/std_string.rb'
 require 'r16/video.rb'
+require 'r16/data.rb'
 
 
 
@@ -21,6 +22,7 @@ module R16
     include R16::ControlStructures
     include R16::Memory
     include R16::StdString
+    include R16::Data
 
     include R16::Video
 
@@ -53,17 +55,7 @@ module R16
       raise "COMPILE ERROR: #{msg}"
     end
 
-    def dat *args
-      s = []
-      args.each do |arg|
-        s << case arg
-               when String then "\"#{arg}\""
-               when Fixnum then "0x%04x" % arg
-               else arg
-             end
-      end
-      puts "dat #{s.join(", ")}"
-    end
+
 
     def out str, deindent=0
       puts (" "*((@tab.level-deindent-1)*4))+str

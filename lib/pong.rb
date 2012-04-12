@@ -10,36 +10,23 @@ include R16::StdString
 R16::Assembler.code do
   set :pc, :main
 
-  set_label :ball_x
-  dat [15<<8]
-  set_label :ball_y
-  dat [7<<8]
-  set_label :ball_dir_x
-  dat [1<<8]
-  set_label :ball_dir_y
-  dat [1<<8+1]
-  set_label :left_paddle
-  dat [0]
-  set_label :right_paddle
-  dat [0]
+  dat :ball_x,       15<<8
+  dat :ball_y,        7<<8
+  dat :ball_dir_x,    1<<8
+  dat :ball_dir_y,    1<<8+1
+  dat :left_paddle,   0
+  dat :right_paddle,  0
 
-  set_label :funky
-  colored_text 0x4000, "FUNKY"
+  colored_text :funky,     "FUNKY"
+  colored_text :copyright, "powered by r16"
 
-  set_label :remove
-  fill 0x0000, 5
+  fill :remove, 0x0000, 5
 
-  set_label :sin_table
   data = 64.times.collect do |i|
     e = Math.sin(i/64.0*360.0*Math::PI/180.0)*7 + 8
     e.floor
   end
-  dat *data
-
-  set_label :copyright
-  colored_text 0x0000, "powered by r16"
-
-
+  dat :sin_table, *data
 
   def_function :memcpy, :params=>3
   def_function :strncpy, :params=>3

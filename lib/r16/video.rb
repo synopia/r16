@@ -1,11 +1,11 @@
 module R16
   module Video
-
     def colored_text *args
       numbers = []
       curr = 0
       args.each do |arg|
         l = case arg
+              when Symbol then set_label arg
               when Fixnum then curr = arg
               when String then arg.bytes.each do |c|
                 numbers<< (c.to_i + curr)
@@ -13,12 +13,8 @@ module R16
             end
       end
       numbers << 0
-      puts "; dat #{args.join(", ")}"
+      out "; dat #{args.join(", ")}"
       dat *numbers
-    end
-
-    def fill word, number
-      dat number.times.to_a.collect{|i|word}
     end
   end
 end
