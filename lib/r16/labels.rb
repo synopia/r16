@@ -29,6 +29,15 @@ module R16
         super
         @tab = Classes::SymbolTable.new
       end
+
+      def op a, b=nil
+        res = super
+        if res.nil? and a.is_a? Symbol
+          res = label(a)
+        end
+        res
+      end
+
       def open_scope name
         @tab.open_scope name
       end

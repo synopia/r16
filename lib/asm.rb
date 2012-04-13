@@ -6,6 +6,7 @@ require 'r16/controls'
 require 'r16/function_calls'
 require 'r16/data'
 require 'r16/video'
+require 'r16/expressions'
 
 
 require 'r16/dcpu16_asm'
@@ -14,6 +15,7 @@ require 'r16/memory'
 require 'r16/std_string'
 
 class Assembler
+  include R16::Constants
   include R16::Opcodes
   include R16::Operands
   include R16::Labels
@@ -21,6 +23,7 @@ class Assembler
   include R16::ControlStructures
   include R16::Data
   include R16::Video
+  include R16::Expressions
 
   include R16::DCPU16Assembler
 

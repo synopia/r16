@@ -14,7 +14,6 @@ module R16
   #
 
   module FunctionCalls
-    COMMENT = "ABI_1"
 
     def self.included(base)
       base.send :include, InstanceMethods
@@ -33,15 +32,29 @@ module R16
         @functions[name] = func
       end
 
+      def open_scope name
+        super
+        regs.open_scope
+      end
+
+      def close_scope
+        regs.close_scope
+        super
+      end
+
       def define_functions
         @functions.each do |name, func|
+          @current_func = name
           func.define
         end
-
       end
 
       def call name, *args
         @functions[name].call_func *args
+      end
+
+      def locals
+        @functions[@current_func].get_locals
       end
     end
 
@@ -60,66 +73,89 @@ module R16
       end
 
       class RegisterParameter < CatchAllDelegateOpcode
-        def initialize target, reg
+        def initialize target, opts
           super target
-          @reg = reg
+          @reg = opts[:bound_to]
+          @rescue = opts[:rescue]
         end
         def before_call arg
-          if op(@reg)==op(arg)
-            out "; optimized #{@reg}"
-            return
+          if @rescue
+            set push, R[@reg]
+            set R[@reg], op(arg).to_s
           end
-          set push, R[@reg], COMMENT
-          set R[@reg], op(arg).to_s, COMMENT
         end
         def after_call arg
-          if op(@reg)==op(arg)
-            return
+          if @rescue
+            set R[@reg], pop
           end
-          set R[@reg], pop, COMMENT
         end
         def get_arg
           Constants::R[@reg]
         end
+        def to_s
+          "reg_param #{@reg}#{@rescue?"[rescued]":""}"
+        end
       end
       class StackParameter < CatchAllDelegateOpcode
-        def initialize target, pos
+        def initialize target, opts
           super target
-          @pos = pos
+          @pos = opts[:position]
         end
         def before_call arg
-          set push, op(arg).to_s,COMMENT
+          set push, op(arg).to_s
         end
         def after_call arg
         end
         def get_arg
-          [R[:J],(0x10000-(1+@pos))]
+          [R[:J],(@pos>=0 ? @pos : 0x10000+@pos)]
+        end
+        def to_s
+          "stack_param #{@pos}"
         end
       end
       class Function < CatchAllDelegateOpcode
+        DEFAULT_REG =
+            [{},
+             {:type=>:register, :bound_to=>:a, :rescue=>true},
+             {:type=>:register, :bound_to=>:b, :rescue=>true},
+             {:type=>:register, :bound_to=>:c, :rescue=>true},
+            # position based on J, J -> old J, J+1 -> jsr ret, J+2.. -> parameters
+             {:type=>:stack,    :position=>2},
+             {:type=>:stack,    :position=>3},
+             {:type=>:stack,    :position=>4},
+             {:type=>:stack,    :position=>5}
+            ]
 
         def initialize target, name, opts={}
           super target
           @name = name
-
-          if opts[:mapping]
-            if opts[:mapping].is_a? Fixnum
-              # default ABI call layout (a, b, c, 1st on stack, 2nd on stack, ...)
-              opts[:mapping] = opts[:mapping].times.to_a.collect do |i|
-                i<3 ? Constants::REGISTERS[i] : i-3
-              end
+          params = opts[:params] || 0
+          if params.is_a? Numeric
+            if params>0
+              params = DEFAULT_REG[1..params]
+            else
+              params = DEFAULT_REG[0]
             end
-            @mapping = opts[:mapping].collect do |map|
-              case map
-                when Symbol then RegisterParameter.new self, map
-                else             StackParameter.new self, map
-              end
+          end
+          @mapping = params.collect do |map|
+            case map[:type]
+              when :register then RegisterParameter.new self, map
+              when :stack    then StackParameter.new    self, map
+              else
+                raise "Unknown param type #{map.inspect}"
             end
+          end
+          @locals = (opts[:locals]||0).times.to_a.collect do |i|
+            StackParameter.new(self, :position => -i-1)
           end
         end
 
+        def get_locals
+          @locals
+        end
+
         def call_func *args
-          out "; call #{@name}"
+          out "", :comment=>"call #{@name} #{@mapping.join(", "){|p| p.to_s}}"
           args.each_with_index do |arg, i|
             map = @mapping[i]
             map.before_call arg
@@ -130,11 +166,15 @@ module R16
             map = @mapping[args.size-1-i]
             map.after_call arg
           end
+          out "", :comment=>"ret"
         end
 
         def define
           set_label @name, :global=>true
           open_scope @name
+          op(:a).reserve
+          op(:b).reserve
+          op(:c).reserve
 
           prolog
 
@@ -142,7 +182,6 @@ module R16
           send @name, *args
 
           epilog
-
           close_scope
         end
 
@@ -159,15 +198,17 @@ module R16
         end
 
         def prolog
-          set push, :j, COMMENT
-          set :j, :sp, COMMENT
-          #sub :sp, args[:locals], COMMENT unless args[:locals].nil? todo
+          out "", :comment=>"function #{@name}( #{@mapping.join(", "){|p| p.to_s}} ) {"
+          set push, :j
+          set :j, :sp
+          sub :sp, @locals.size, :comment=>"#{@locals.size} locals" unless @locals.size==0
         end
         def epilog ret_val=nil
-          set :a, ret_val,COMMENT  unless ret_val.nil?
-          set :sp, :j, COMMENT
-          set :j, pop, COMMENT
-          set :pc, pop, COMMENT
+          set :a, ret_val unless ret_val.nil?
+          set :sp, :j
+          set :j, pop
+          set :pc, pop
+          out "", :comment=> "}"
         end
       end
 

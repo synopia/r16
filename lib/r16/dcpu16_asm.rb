@@ -9,9 +9,16 @@ module R16
     end
 
     module InstanceMethods
-
-      def out a, opts={}
-       puts a
+      def append_opts  opts=nil
+        if opts
+          return "; "+opts[:comment] if opts[:comment]
+        end
+        ""
+      end
+      def out a, opts=nil
+        res = "  "*@tab.level
+        res += a + append_opts(opts)
+        puts res
       end
 
       R16::Constants::OPCODES_2.each do |opcode|

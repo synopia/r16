@@ -15,25 +15,26 @@ module R16
     end
 
     module InstanceMethods
-      class ::Fixnum
-        def to_h
-          "0x%04x" % to_s
-        end
-      end
 
       def op(a, b=nil)
         unless b.nil?
-          return Expr.new op(a), op(b)
+          return InlineExpr.new op(a), op(b)
         end
         case a
-          when Array then Pointer.new op(*a)
-          when Fixnum then a.to_h
-          when Symbol then Constants::R[a].nil? ? label(a) : Constants::R[a]
+          when Array then
+            target = op(*a)
+            if target.is_a? Pointer
+              target
+            else
+              Pointer.new target
+            end
+          when Numeric then Literal.new a
+          when Symbol then Constants::R[a].nil? ? nil : Constants::R[a]
           else a
         end
       end
 
-      class Expr
+      class InlineExpr
         def initialize (*args)
           @args = args
         end
@@ -60,6 +61,17 @@ module R16
 
         def to_s
           "[#{@target.to_s}]"
+        end
+      end
+
+      class Literal
+        def initialize lit
+          @lit = lit
+        end
+
+        def to_s
+          return "0x%04x" % @lit.to_s if @lit.is_a? Numeric
+          @lit.to_s
         end
       end
     end
