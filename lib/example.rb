@@ -1,35 +1,43 @@
 require 'asm'
 
 Assembler.new.code do
+  set :pc, :main
   class << self
       include R16::Memory   # include modules with functions
   end
 
-  set :pc, :main            # plain jump to label (notice: forward definition)
-  dat :hallo, "Hallo"       # you write ruby -> you can do offline calculations on the fly here
+  set :pc, :main                       # plain jump to label (notice: forward definition)
+  dat :r16_rules, "r16 rules"          # you write ruby -> you can do offline calculations on the fly here
   colored_text :funky, 0xD000, "Funky" # some helpers for color stuff
 
-  def foo a                 # use normal defs as functions
-    set [a], a              # anything in [] means read/write to memory
+  declare_function :memcpy, :params=>3 # declare an external function with 3 arguments
+  declare_function :main,   :locals=>3 # set one local var
+
+  def main                  # main entry point
+    n, ball_x, ball_y = locals
+    n.set! 0
+    ball_x.set! 15
+    ball_y.set! 7
+
+    call :memcpy, 0x8000, :funky, 5       # call function, you may use labels in here
+    call :memcpy, 0x8010, :r16_rules, 9
+
+    set_label :loop         # local label, this becomes sth like :__main__loop, depending on the current scope
+
+    op(:a).set! (ball_y<<5)+ball_x+0x8000
+    set [:a], 0x30
+    op(:b).set! n%128
+
+    if_then proc { ife :b, 0 } do
+      ball_x.add! 1
+    end
+
+    n.add! 1
+
+    set :pc, :loop
   end
 
-  declare_function :foo,        :mapping=>1 # declare a function with 1 argument
-  declare_function :memcpy,     :mapping=>3 # declare an external function with 3 arguments
-  declare_function :inl_memcpy, :inline=>true, :method=>:memcpy
-                                            # declare a function as inline -> functions gets "unrolled"
-
   define_functions          # generate all declared functions
-
-  set_label :main           # local label, this becomes sth like :_code__main, depending on the current scope
-  set  :x, 0x8000
-  call :foo, :x             #
-
-  call :memcpy, 0x8000, :funky, 5 # call function, you may use labels in here
-
-  set :a, 0x8010
-  set :b, :hallo
-  set :c, 5
-  call :inl_memcpy,:a, :b, :c        # unroll inline function
 
   brk
 end

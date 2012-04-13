@@ -65,10 +65,10 @@ module R16
       end
 
       def op a, b=nil
-        res = super
+        res = super a,b
         case res
-          when Operands::InstanceMethods::Assign then res.set_ref self; res.build
-          when Symbol then Operands::InstanceMethods::Literal.new res
+          when Operands::InstanceMethods::Assign then res.build
+          when Symbol then Operands::InstanceMethods::Literal.new self, res
           when FunctionCalls::Classes::RegisterParameter then op(res.get_arg)
           when FunctionCalls::Classes::StackParameter then op(res.get_arg)
           else
@@ -78,39 +78,36 @@ module R16
 
     end
     module Root
-      def set_ref ref
-        @ref = ref
-      end
-      def regs
-        REGS
-      end
       def set! other
-        Operands::InstanceMethods::Assign.new self, other
+        Operands::InstanceMethods::Assign.new ref, self, other
       end
       def add! other
-        Operands::InstanceMethods::Assign.new self, self+other
+        Operands::InstanceMethods::Assign.new ref, self, self+other
       end
       def sub! other
-        Operands::InstanceMethods::Assign.new self, self-other
+        Operands::InstanceMethods::Assign.new ref, self, self-other
       end
 
       def + other
-        Operands::InstanceMethods::Expr.new :add, self, other
+        Operands::InstanceMethods::Expr.new ref, :add, self, other
       end
       def - other
-        Operands::InstanceMethods::Expr.new :sub, self, other
+        Operands::InstanceMethods::Expr.new ref, :sub, self, other
       end
       def / other
-        Operands::InstanceMethods::Expr.new :div, self, other
+        Operands::InstanceMethods::Expr.new ref, :div, self, other
       end
       def * other
-        Operands::InstanceMethods::Expr.new :mul, self, other
+        Operands::InstanceMethods::Expr.new ref, :mul, self, other
       end
       def << other
-        Operands::InstanceMethods::Expr.new :shl, self, other
+        Operands::InstanceMethods::Expr.new ref, :shl, self, other
       end
       def >> other
-        Operands::InstanceMethods::Expr.new :shr, self, other
+        Operands::InstanceMethods::Expr.new ref, :shr, self, other
+      end
+      def % other
+        Operands::InstanceMethods::Expr.new ref, :mod, self, other
       end
       def op(a, b=nil)
         @ref.op a, b
@@ -119,52 +116,40 @@ module R16
 
 
     module ::R16::Operands::InstanceMethods
-      class Assign
+      class Assign < Operand
         include Root
 
-        def initialize left, right
-          @left = left
-          @right = right
-        end
-
-        def set_ref ref
-          super
-          @left = op(@left)
-          @right = op(@right)
-          @right.set_ref ref
+        def initialize ref, left, right
+          super ref
+          @left = op(left)
+          @right = op(right)
+          build
         end
 
         def build
           @ref.out "", :comment=>"#{@left} = #{@right}"
-          regs.open_scope
+          @ref.regs.open_scope
           r = @right.get_read_op @left
           set_l = @left.get_write_op.to_s
           get_r = r.to_s
           @ref.set set_l, r.to_s if set_l!=get_r
-          regs.close_scope
+          @ref.regs.close_scope
         end
       end
 
-      class Expr
+      class Expr < Operand
         include Root
 
 
-        def initialize op, left, right
+        def initialize ref, op, left, right
+          super ref
           @op   = op
-          @left = left
-          @right = right
-        end
-
-        def set_ref ref
-          super
-          @left = op(@left)
-          @right = op(@right)
-          @left.set_ref ref
-          @right.set_ref ref
+          @left = op(left)
+          @right = op(right)
         end
 
         def get_read_op target=nil
-          target = R16::Constants::R[regs.find_and_reserve] if target.nil?
+          target = @ref.r(@ref.regs.find_and_reserve) if target.nil?
           l = @left.get_read_op
           r = @right.get_read_op
           @ref.set target.get_write_op, l.get_read_op  if target.get_write_op!=l.get_read_op
@@ -177,7 +162,7 @@ module R16
         end
       end
 
-      class Register
+      class Register < Operand
         include Root
 
         def get_read_op t=nil
@@ -189,13 +174,13 @@ module R16
         end
 
         def reserve
-          regs.find_and_reserve @reg
+          ref.regs.find_and_reserve @reg
           self
         end
 
       end
 
-      class Literal
+      class Literal < Operand
         include Root
 
         def get_read_op t=nil
@@ -206,7 +191,7 @@ module R16
         end
       end
 
-      class Pointer
+      class Pointer < Operand
         include Root
 
         def get_read_op t=nil
@@ -217,26 +202,6 @@ module R16
         end
       end
 
-      class Variable
-        include Root
-
-        def initialize pos
-          @pos = pos
-          @bound = false
-        end
-
-        def get_read_op t=nil
-          self
-        end
-        def get_write_op
-          self
-        end
-
-        def to_s
-          "[JP-#{@pos}]"
-        end
-      end
     end
-
   end
 end

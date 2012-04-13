@@ -18,7 +18,7 @@ module R16
 
       def op(a, b=nil)
         unless b.nil?
-          return InlineExpr.new op(a), op(b)
+          return InlineExpr.new self, op(a), op(b)
         end
         case a
           when Array then
@@ -26,17 +26,26 @@ module R16
             if target.is_a? Pointer
               target
             else
-              Pointer.new target
+              Pointer.new self, target
             end
-          when Numeric then Literal.new a
-          when Symbol then Constants::R[a].nil? ? nil : Constants::R[a]
+          when Numeric then Literal.new self, a
+          when Symbol then r(a).nil? ? nil : r(a)
           else a
         end
       end
 
-      class InlineExpr
-        def initialize (*args)
-          @args = args
+
+      class Operand
+        attr_reader :ref
+        def initialize ref
+          @ref = ref
+        end
+      end
+
+      class InlineExpr < Operand
+        def initialize( ref, a, b)
+          super ref
+          @args = [a, b]
         end
 
         def to_s
@@ -44,8 +53,9 @@ module R16
         end
 
       end
-      class Register
-        def initialize (reg)
+      class Register < Operand
+        def initialize ( ref, reg)
+          super ref
           @reg = reg
         end
 
@@ -54,8 +64,9 @@ module R16
         end
       end
 
-      class Pointer
-        def initialize( target )
+      class Pointer < Operand
+        def initialize( ref, target )
+          super ref
           @target = target
         end
 
@@ -64,8 +75,9 @@ module R16
         end
       end
 
-      class Literal
-        def initialize lit
+      class Literal < Operand
+        def initialize (ref, lit)
+          super ref
           @lit = lit
         end
 

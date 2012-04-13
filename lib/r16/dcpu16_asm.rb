@@ -21,20 +21,20 @@ module R16
         puts res
       end
 
-      R16::Constants::OPCODES_2.each do |opcode|
+      Opcodes::InstanceMethods::OPCODES_2.each do |opcode|
         define_method( opcode ) do |a, b, c=nil|
           out "#{opcode.to_s.upcase} #{op(a).to_s}, #{op(b).to_s} ", c
           super
         end
         end
-      R16::Constants::OPCODES_1.each do |opcode|
+      Opcodes::InstanceMethods::OPCODES_1.each do |opcode|
         define_method( opcode ) do |a, c=nil|
           out "#{opcode.to_s.upcase} #{op(a).to_s}", c
           super
         end
       end
 
-      R16::Constants::OPCODES_0.each do |opcode|
+      Opcodes::InstanceMethods::OPCODES_0.each do |opcode|
         define_method(opcode) do
           opcode.to_s.upcase
         end

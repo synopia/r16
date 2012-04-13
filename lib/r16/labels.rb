@@ -31,7 +31,7 @@ module R16
       end
 
       def op a, b=nil
-        res = super
+        res = super a,b
         if res.nil? and a.is_a? Symbol
           res = label(a)
         end

@@ -54,7 +54,9 @@ module R16
       end
 
       def locals
-        @functions[@current_func].get_locals
+        f = @functions[@current_func].get_locals.collect{ |p| op(p.get_arg) }
+        return f.first if f.size==1
+        f
       end
     end
 
@@ -68,7 +70,7 @@ module R16
           @target.send method, *args
         end
         def self.const_missing const
-          R16::Constants.const_get const
+          #R16::Constants.const_get const
         end
       end
 
@@ -80,17 +82,17 @@ module R16
         end
         def before_call arg
           if @rescue
-            set push, R[@reg]
-            set R[@reg], op(arg).to_s
+            set push, r(@reg)
+            set r(@reg), op(arg).to_s
           end
         end
         def after_call arg
           if @rescue
-            set R[@reg], pop
+            set r(@reg), pop
           end
         end
         def get_arg
-          Constants::R[@reg]
+          r(@reg)
         end
         def to_s
           "reg_param #{@reg}#{@rescue?"[rescued]":""}"
@@ -107,7 +109,7 @@ module R16
         def after_call arg
         end
         def get_arg
-          [R[:J],(@pos>=0 ? @pos : 0x10000+@pos)]
+          [r(:J),(@pos>=0 ? @pos : 0x10000+@pos)]
         end
         def to_s
           "stack_param #{@pos}"

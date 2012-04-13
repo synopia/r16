@@ -10,19 +10,34 @@ module R16
     module InstanceMethods
       include R16::Operands
 
-      Constants::REGISTERS.each do |r|
-        Constants::R[r.to_s.downcase.to_sym] = Constants::R[r] = Register.new r
+      REGISTERS = [ :A, :B, :C, :X, :Y, :Z, :I, :J, :SP, :PC, :O]
+
+      OPCODES_2 = [:set, :add, :sub, :mul, :div, :mod, :shl, :shr, :and, :bor, :xor, :ife, :ifn, :ifg, :ifb]
+      OPCODES_1 = [:jsr]
+      OPCODES_0 = [:pop, :peek, :push]
+
+      def initialize
+        @regs = {}
+        REGISTERS.each do |reg|
+          @regs[reg.to_s.downcase.to_sym] = @regs[reg] = Register.new(self, reg)
+        end
       end
-      R16::Constants::OPCODES_2.each do |opcode|
+
+      def r reg
+        return @regs[reg] if @regs.has_key? reg
+        nil
+      end
+
+      OPCODES_2.each do |opcode|
         define_method( opcode ) do |a, b, c=nil|
         end
         end
-      R16::Constants::OPCODES_1.each do |opcode|
+      OPCODES_1.each do |opcode|
         define_method( opcode ) do |a,c=nil|
         end
       end
 
-      R16::Constants::OPCODES_0.each do |opcode|
+      OPCODES_0.each do |opcode|
         define_method(opcode) do |c=nil|
         end
       end
