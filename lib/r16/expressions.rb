@@ -87,6 +87,9 @@ module R16
       def sub! other
         Operands::InstanceMethods::Assign.new ref, self, self-other
       end
+      def mul! other
+        Operands::InstanceMethods::Assign.new ref, self, self*other
+      end
 
       def + other
         Operands::InstanceMethods::Expr.new ref, :add, self, other
@@ -193,11 +196,18 @@ module R16
 
       class Pointer < Operand
         include Root
-
+        attr :target
         def get_read_op t=nil
+          puts "READ"  if @target.is_a? Pointer
           self
         end
-        def get_write_op
+        def get_write_op t=nil
+          if @target.is_a? Pointer
+            local_reg = @ref.r(@ref.regs.find_and_reserve)
+            l = @target.get_read_op
+            @ref.set local_reg.get_write_op, l.get_read_op
+            return Pointer.new @ref, local_reg
+          end
           self
         end
       end

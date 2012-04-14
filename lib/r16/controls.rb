@@ -14,8 +14,8 @@ module R16
         set_label :loop, :deindent=>1
 
         instance_eval &expr
-        set :pc, :then
-        set :pc, :exit
+        set :pc, local_label(:then)
+        set :pc, local_label(:exit)
         set_label :then, :deindent=>1
         instance_eval &block
         set_label :exit, :deindent=>1
@@ -28,7 +28,7 @@ module R16
         set_label :loop, :deindent=>1
 
         instance_eval &expr
-        set :pc, :exit
+        set :pc, local_label(:exit)
         instance_eval &block
         set :pc, :loop
 

@@ -19,7 +19,16 @@ module R16
       def initialize
         @regs = {}
         REGISTERS.each do |reg|
-          @regs[reg.to_s.downcase.to_sym] = @regs[reg] = Register.new(self, reg)
+          downcase = reg.to_s.downcase
+          @regs[downcase.to_sym] = @regs[reg] = Register.new(self, reg)
+          eval <<-EOM
+def #{downcase}
+  @regs[:#{downcase}]
+end
+def #{downcase}= a
+  @regs[:#{downcase}].set! a
+end
+          EOM
         end
       end
 

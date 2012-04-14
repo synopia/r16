@@ -39,6 +39,14 @@ module R16
           opcode.to_s.upcase
         end
       end
+
+      def set a, b, c={}
+        a_s = op(a).to_s
+        b_s = op(b).to_s
+        out "SET #{a_s}, #{b_s} ", c if a_s!=b_s
+        super
+
+      end
     end
   end
 end

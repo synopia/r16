@@ -53,10 +53,18 @@ module R16
         @functions[name].call_func *args
       end
 
-      def locals
-        f = @functions[@current_func].get_locals.collect{ |p| op(p.get_arg) }
-        return f.first if f.size==1
-        f
+      def locals *args
+        args.each_with_index do |arg, i|
+          f = @functions[@current_func].get_locals[i]
+          eval <<-EOM
+          def #{arg}
+            op(@functions[@current_func].get_locals[#{i}])
+          end
+          def #{arg}= a
+            op(@functions[@current_func].get_locals[#{i}]).set! a
+          end
+          EOM
+        end
       end
     end
 
@@ -121,7 +129,7 @@ module R16
              {:type=>:register, :bound_to=>:a, :rescue=>true},
              {:type=>:register, :bound_to=>:b, :rescue=>true},
              {:type=>:register, :bound_to=>:c, :rescue=>true},
-            # position based on J, J -> old J, J+1 -> jsr ret, J+2.. -> parameters
+             # position based on J, J -> old J, J+1 -> jsr ret, J+2.. -> parameters
              {:type=>:stack,    :position=>2},
              {:type=>:stack,    :position=>3},
              {:type=>:stack,    :position=>4},

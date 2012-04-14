@@ -58,6 +58,13 @@ module R16
         label.to_fq
       end
 
+      def local_label(name)
+        label = @tab.top_scope.find name
+        return label.to_fq unless label.nil?
+        label = @tab.new_label name, :label, :label, :forward=>true
+        label
+      end
+
     end
 
     module Classes
@@ -83,6 +90,10 @@ module R16
 
         def to_fq
           "#{@scope.to_fq}__#{name}".to_sym
+        end
+
+        def to_s
+          to_fq
         end
       end
       class Scope
@@ -134,6 +145,7 @@ module R16
       end
 
       class SymbolTable
+        attr_reader :top_scope
         def initialize
           @top_scope    = @global_scope = Scope.new nil, "", 0
           @stack        = []

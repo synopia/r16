@@ -21,13 +21,7 @@ module R16
           return InlineExpr.new self, op(a), op(b)
         end
         case a
-          when Array then
-            target = op(*a)
-            if target.is_a? Pointer
-              target
-            else
-              Pointer.new self, target
-            end
+          when Array then Pointer.new self, op(*a)
           when Numeric then Literal.new self, a
           when Symbol then r(a).nil? ? nil : r(a)
           else a
